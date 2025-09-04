@@ -1,20 +1,31 @@
 "use client";
 import Board from "@/app/components/Board";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
   const [mode, setMode] = useState<"pve" | "pvp" | null>(null);
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<{ username: string } | null>(null);
   const [difficulty, setDifficulty] = useState<
     "easy" | "medium" | "hard" | null
   >(null);
 
-  // Đăng nhập/Đăng xuất
-  const handleLogin = () => {
-    const name = prompt("Nhập tên của bạn:");
-    if (name) setUser({ name });
+  // Load user từ localStorage khi vào trang
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  // Đăng xuất
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    alert("🚪 Đã đăng xuất!");
   };
-  const handleLogout = () => setUser(null);
 
   return (
     <main className="flex flex-col min-h-screen relative text-gray-800">
@@ -46,7 +57,7 @@ export default function HomePage() {
             {user ? (
               <div className="flex items-center gap-3 bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">
                 <span className="text-white font-medium flex items-center gap-1">
-                  👤 {user.name}
+                  👤 {user.username}
                 </span>
                 <button
                   onClick={handleLogout}
@@ -57,7 +68,7 @@ export default function HomePage() {
               </div>
             ) : (
               <button
-                onClick={handleLogin}
+                onClick={() => router.push("/sign_in")}
                 className="px-4 py-2 rounded-lg bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-500 shadow-md transition"
               >
                 🔑 Đăng nhập
@@ -133,7 +144,6 @@ export default function HomePage() {
           ) : (
             // Board game hiển thị khi đã chọn đủ chế độ & độ khó
             <div className="p-6 bg-white/95 rounded-xl shadow-2xl border border-indigo-200">
-              {/* 👇 Có thể truyền difficulty vào đây nếu muốn */}
               <Board mode={mode} difficulty={difficulty} />
             </div>
           )}
